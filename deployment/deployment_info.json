@@ -1,0 +1,11 @@
+{
+  "contractName": "TokenizeArt42",
+  "symbol": "TA42",
+  "network": "BNB Smart Chain Testnet",
+  "chainId": 97,
+  "contractAddress": "0x954f059376A80327408cBfd6CC7CDC296c4994C4",
+  "explorerUrl": "https://testnet.bscscan.com/address/0x954f059376A80327408cBfd6CC7CDC296c4994C4",
+  "compiler": "Solidity 0.8.34",
+  "standard": "ERC-721 / BEP-721",
+  "deployer": "0xe2175ADBAd5227281dc17016112646874B8146b3"
+}
