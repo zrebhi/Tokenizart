@@ -1,0 +1,27 @@
+{
+  "contractAddress": "0x954f059376A80327408cBfd6CC7CDC296c4994C4",
+  "network": "BNB Smart Chain Testnet",
+  "chainId": 97,
+  "tokensMinted": [
+    {
+      "tokenId": 0,
+      "purpose": "Academic compliance & decentralized protocol immutability (Native IPFS)",
+      "transactionHash": "0x819e2826f0c650ffc8108889447135319f6f11e20d7f294938a53875f653828d",
+      "txExplorerUrl": "https://testnet.bscscan.com/tx/0x819e2826f0c650ffc8108889447135319f6f11e20d7f294938a53875f653828d",
+      "recipient": "0xe2175ADBAd5227281dc17016112646874B8146b3",
+      "metadataURI": "ipfs://bafkreietgailfjgtvsv46o7tbj26xik7ldfkcxztrmm5hnktt24si2jgga",
+      "imageURI": "ipfs://bafybeihw3rdtli4if55g33ydkzm57vvcvtuomvunbrwnnmkdtcneatswr4",
+      "scheme": "ipfs://"
+    },
+    {
+      "tokenId": 1,
+      "purpose": "Ecosystem interoperability & MetaMask wallet native visual rendering",
+      "transactionHash": "0x0f258b9da5259967847d89689ad6bb99592e417030fda2baad1c86db80cb5cb6",
+      "txExplorerUrl": "https://testnet.bscscan.com/tx/0x0f258b9da5259967847d89689ad6bb99592e417030fda2baad1c86db80cb5cb6",
+      "recipient": "0xe2175ADBAd5227281dc17016112646874B8146b3",
+      "metadataURI": "https://gateway.pinata.cloud/ipfs/bafkreietgailfjgtvsv46o7tbj26xik7ldfkcxztrmm5hnktt24si2jgga",
+      "imageURI": "https://gateway.pinata.cloud/ipfs/bafybeihw3rdtli4if55g33ydkzm57vvcvtuomvunbrwnnmkdtcneatswr4",
+      "scheme": "https://"
+    }
+  ]
+}
