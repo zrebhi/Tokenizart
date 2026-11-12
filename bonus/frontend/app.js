@@ -19,7 +19,8 @@ const CONTRACT_ABI = [
   "function name() view returns (string)",
   "function symbol() view returns (string)",
   "function totalSupply() view returns (uint256)",
-  "function owner() view returns (address)"
+  "function owner() view returns (address)",
+  "function safeMint(address to, string uri)"
 ];
 
 // UI Elements
@@ -31,6 +32,8 @@ const totalSupplyDisplay = document.getElementById("totalSupplyDisplay");
 const tokenSymbolDisplay = document.getElementById("tokenSymbolDisplay");
 const mintBtn = document.getElementById("mintBtn");
 const mintStatus = document.getElementById("mintStatus");
+const mintForm = document.getElementById("mintForm");
+const metadataUriInput = document.getElementById("metadataURI");
 
 let provider;
 let contractRead;
@@ -181,7 +184,56 @@ async function switchNetwork() {
   }
 }
 
+// Execute on-chain safeMint transaction via connected owner wallet
+async function handleMint(event) {
+  event.preventDefault();
+
+  if (!provider || !userAddress) {
+    mintStatus.textContent = "Please connect your wallet first.";
+    mintStatus.className = "status-msg error";
+    return;
+  }
+
+  const recipient = recipientInput.value.trim();
+  const metadataURI = metadataUriInput.value.trim();
+
+  if (!ethers.isAddress(recipient) || !metadataURI) {
+    mintStatus.textContent = "Enter a valid recipient address and metadata URI.";
+    mintStatus.className = "status-msg error";
+    return;
+  }
+
+  try {
+    mintBtn.disabled = true;
+    mintStatus.textContent = "Confirm transaction in MetaMask...";
+    mintStatus.className = "status-msg";
+
+    const signer = await provider.getSigner();
+    const contractWrite = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+    const tx = await contractWrite.safeMint(recipient, metadataURI);
+    mintStatus.textContent = `Transaction sent (${tx.hash.slice(0, 10)}...). Waiting for block confirmation...`;
+
+    await tx.wait();
+
+    mintStatus.textContent = "Token minted successfully!";
+    mintStatus.className = "status-msg success";
+    metadataUriInput.value = "";
+
+    await loadContractStats();
+  } catch (err) {
+    console.error("Minting failed:", err);
+    mintStatus.textContent = err.code === "ACTION_REJECTED"
+      ? "Transaction rejected in MetaMask."
+      : `Mint failed: ${err.reason || err.message}`;
+    mintStatus.className = "status-msg error";
+  } finally {
+    mintBtn.disabled = false;
+  }
+}
+
 connectBtn.addEventListener("click", connectWallet);
 switchNetworkBtn.addEventListener("click", switchNetwork);
+if (mintForm) mintForm.addEventListener("submit", handleMint);
 
 window.addEventListener("DOMContentLoaded", init);
