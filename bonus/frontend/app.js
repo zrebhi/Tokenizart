@@ -199,8 +199,7 @@ async function initWallet() {
 }
 
 async function init() {
-  await initContract();
-  await initWallet();
+  await Promise.all([initContract(), initWallet()]);
 }
 
 
@@ -212,10 +211,17 @@ async function connectWallet() {
   }
 
   try {
+    if (!provider) {
+      provider = new ethers.BrowserProvider(window.ethereum);
+    }
     const accounts = await provider.send("eth_requestAccounts", []);
     await handleAccountsChanged(accounts);
   } catch (err) {
-    console.error("User rejected wallet connection:", err);
+      if (err.code === 4001 || err.code === "ACTION_REJECTED") {
+        console.warn("User rejected wallet connection.");
+    } else {
+      console.error("Failed to connect wallet:", err);
+    }
   }
 }
 
