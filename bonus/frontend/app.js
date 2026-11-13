@@ -117,6 +117,9 @@ function createNftCard(token) {
   img.src = token.image;
   img.alt = token.name;
   img.loading = "lazy";
+  img.onerror = () => {
+    img.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'><rect width='100%' height='100%' fill='%230d1118'/><text x='50%' y='50%' fill='%238b949e' font-family='sans-serif' font-size='16' text-anchor='middle' dominant-baseline='middle'>Image Unavailable</text></svg>";
+  };
 
   const info = document.createElement("div");
   info.className = "nft-info";
@@ -230,6 +233,7 @@ async function handleAccountsChanged(accounts) {
   if (accounts.length === 0) {
     userAddress = null;
     connectBtn.textContent = "Connect Wallet";
+    connectBtn.disabled = false;
     if (recipientInput) recipientInput.value = "";
     networkWarning.style.display = "none";
     mintBtn.disabled = true;
@@ -239,7 +243,8 @@ async function handleAccountsChanged(accounts) {
 
   userAddress = accounts[0];
   connectBtn.textContent = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
-  
+  connectBtn.disabled = true; // Disable connect button after successful connection
+
   if (recipientInput) {
     recipientInput.value = userAddress;
   }
@@ -311,6 +316,14 @@ async function handleMint(event) {
     return;
   }
 
+  const network = await provider.getNetwork();
+  if (Number(network.chainId) !== BSC_TESTNET_CHAIN_ID) {
+    mintBtn.disabled = true;
+    mintStatus.textContent = "Please switch to BNB Smart Chain Testnet first.";
+    mintStatus.className = "status-msg error";
+    return;
+  }
+
   const recipient = recipientInput.value.trim();
   const metadataURI = metadataUriInput.value.trim();
 
@@ -333,8 +346,14 @@ async function handleMint(event) {
 
     await tx.wait();
 
-    mintStatus.textContent = "Token minted successfully!";
+    mintStatus.textContent = "Token minted successfully! ";
     mintStatus.className = "status-msg success";
+    const txLink = document.createElement("a");
+    txLink.href = `${BSC_TESTNET_PARAMS.blockExplorerUrls[0]}/tx/${tx.hash}`;
+    txLink.target = "_blank"; // Open in new tab
+    txLink.rel = "noopener noreferrer"; // Security best practice when opening new tabs
+    txLink.textContent = "View on BscScan";
+    mintStatus.appendChild(txLink);
     metadataUriInput.value = "";
 
     await loadContractStats();
