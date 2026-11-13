@@ -20,7 +20,9 @@ const CONTRACT_ABI = [
   "function symbol() view returns (string)",
   "function totalSupply() view returns (uint256)",
   "function owner() view returns (address)",
-  "function safeMint(address to, string uri)"
+  "function safeMint(address to, string uri)",
+  "function ownerOf(uint256 tokenId) view returns (address)",
+  "function tokenURI(uint256 tokenId) view returns (string)",
 ];
 
 // UI Elements
@@ -34,6 +36,7 @@ const mintBtn = document.getElementById("mintBtn");
 const mintStatus = document.getElementById("mintStatus");
 const mintForm = document.getElementById("mintForm");
 const metadataUriInput = document.getElementById("metadataURI");
+const galleryGrid = document.getElementById("galleryGrid");
 
 let provider;
 let contractRead;
@@ -58,11 +61,119 @@ async function loadContractStats() {
 
     tokenSymbolDisplay.textContent = `${name} (${symbol})`;
     totalSupplyDisplay.textContent = supply.toString();
+
+    await loadGallery(Number(supply));
   } catch (err) {
     console.error("Failed to read contract state:", err);
     totalSupplyDisplay.textContent = "Error";
   }
 }
+
+const IPFS_GATEWAY = "https://gateway.pinata.cloud/ipfs/";
+
+function resolveIpfsUri(uri) {
+  if (!uri) return "";
+  return uri.startsWith("ipfs://") ? `${IPFS_GATEWAY}${uri.slice(7)}` : uri;
+}
+
+// Fetch on-chain ownership/URI and off-chain JSON metadata for a single token
+async function fetchTokenData(tokenId) {
+  const [owner, rawTokenUri] = await Promise.all([
+    contractRead.ownerOf(tokenId),
+    contractRead.tokenURI(tokenId)
+  ]);
+
+  let metadata = {
+    name: `Token #${tokenId}`,
+    artist: "Unknown",
+    image: ""
+  };
+
+  try {
+    const metadataUrl = resolveIpfsUri(rawTokenUri);
+    const response = await fetch(metadataUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const json = await response.json();
+    metadata = {
+      name: json.name || metadata.name,
+      artist: json.artist || metadata.artist,
+      image: resolveIpfsUri(json.image)
+    };
+  } catch (metaErr) {
+    console.warn(`Metadata fetch failed for token #${tokenId}:`, metaErr);
+  }
+
+  return { tokenId, owner, ...metadata };
+}
+
+// Construct an XSS-safe .nft-card DOM element
+function createNftCard(token) {
+  const card = document.createElement("div");
+  card.className = "nft-card";
+
+  const img = document.createElement("img");
+  img.src = token.image;
+  img.alt = token.name;
+  img.loading = "lazy";
+
+  const info = document.createElement("div");
+  info.className = "nft-info";
+
+  const header = document.createElement("div");
+  header.className = "nft-header";
+
+  const title = document.createElement("h3");
+  title.className = "nft-title";
+  title.textContent = token.name;
+
+  const idBadge = document.createElement("span");
+  idBadge.className = "nft-id";
+  idBadge.textContent = `#${token.tokenId}`;
+
+  header.append(title, idBadge);
+
+  const artist = document.createElement("p");
+  artist.className = "nft-artist";
+  artist.textContent = `Artist: ${token.artist}`;
+
+  const owner = document.createElement("p");
+  owner.className = "nft-owner";
+  owner.textContent = `Owner: ${token.owner.slice(0, 6)}...${token.owner.slice(-4)}`;
+  owner.title = token.owner;
+
+  info.append(header, artist, owner);
+  card.append(img, info);
+  return card;
+}
+
+// Discover all minted tokens and render their cards into #galleryGrid
+async function loadGallery(totalSupply) {
+  if (!galleryGrid || !contractRead) return;
+
+  if (totalSupply === 0) {
+    const emptyMsg = document.createElement("p");
+    emptyMsg.className = "gallery-empty";
+    emptyMsg.textContent = "No tokens minted yet.";
+    galleryGrid.replaceChildren(emptyMsg);
+    return;
+  }
+
+  try {
+    const tokenIds = Array.from({ length: totalSupply }, (_, i) => i);
+    const tokens = await Promise.all(tokenIds.map((id) => fetchTokenData(id)));
+    const cards = tokens.map((token) => createNftCard(token));
+    galleryGrid.replaceChildren(...cards);
+  } catch (err) {
+    console.error("Failed to load NFT gallery:", err);
+    const errMsg = document.createElement("p");
+    errMsg.className = "status-msg error";
+    errMsg.textContent = "Failed to load collection gallery.";
+    galleryGrid.replaceChildren(errMsg);
+  }
+}
+
 
 // Initialize wallet bindings and listeners
 async function initWallet() {

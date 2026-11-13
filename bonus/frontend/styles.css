@@ -189,53 +189,85 @@ input:focus {
 }
 
 .nft-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  overflow: hidden;
+  position: relative;
   display: flex;
   flex-direction: column;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.nft-image-container {
+.nft-card:hover {
+  transform: translateY(-4px);
+  border-color: #f0b90b;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* Uniform 1:1 frame prevents 16:9 vs 1:1 images from misaligning rows */
+.nft-card img {
+  display: block;
   width: 100%;
   aspect-ratio: 1 / 1;
-  background: #0d1118;
+  object-fit: contain;
+  background: #0d1117;
+  border-bottom: 1px solid #21262d;
+}
+
+/* Expands to fill card height and centers text vertically & horizontally */
+.nft-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 1.25rem 1rem;
+  gap: 0.45rem;
+}
+
+.nft-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.nft-image-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.nft-details {
-  padding: 1.2rem;
-  display: flex;
-  flex-direction: column;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .nft-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--primary);
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #f0f6fc;
 }
 
-.nft-meta {
-  font-size: 0.85rem;
-  color: var(--text-muted);
+.nft-id {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(240, 185, 11, 0.15);
+  color: #f0b90b;
+  border: 1px solid rgba(240, 185, 11, 0.35);
+}
+
+.nft-artist {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #8b949e;
 }
 
 .nft-owner {
-  font-family: monospace;
+  margin: 0.25rem 0 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.8rem;
-  color: var(--accent);
-  word-break: break-all;
+  color: #c9d1d9;
+  background: #0d1117;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid #30363d;
+  cursor: help;
 }
 
 .status-msg {
