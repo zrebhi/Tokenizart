@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TokenizeArt42 — Cybernetic Eagle dApp</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Ethers.js v6 UMD CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Header & Wallet Connection -->
+    <header>
+      <div class="brand">
+        <h1>TOKENIZEART<span>42</span></h1>
+        <p class="subtitle">BEP-721 Digital Art Registry &bull; BNB Smart Chain Testnet</p>
+      </div>
+      <button id="connectBtn" class="btn primary">Connect Wallet</button>
+    </header>
+
+    <!-- Network Warning Banner -->
+    <section class="network-banner" id="networkWarning" style="display: none;">
+      <span>⚠️ Wrong Network. Please switch to <strong>BNB Smart Chain Testnet (Chain ID 97)</strong>.</span>
+      <button id="switchNetworkBtn" class="btn small">Switch Network</button>
+    </section>
+
+    <!-- On-Chain Contract Statistics -->
+    <section class="card stats-card">
+      <h2>Contract Status</h2>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="label">Contract Address</span>
+          <span class="value" id="contractAddressDisplay">0x954f0...4994C4</span>
+        </div>
+        <div class="stat-item">
+          <span class="label">Token Standard</span>
+          <span class="value">ERC-721 / BEP-721</span>
+        </div>
+        <div class="stat-item">
+          <span class="label">Token Identity</span>
+          <span class="value" id="tokenSymbolDisplay">TokenizeArt42 (TA42)</span>
+        </div>
+        <div class="stat-item">
+          <span class="label">Total Minted</span>
+          <span class="value highlight" id="totalSupplyDisplay">Loading...</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Minting Interface -->
+    <section class="card mint-card">
+      <h2>Mint New Artwork</h2>
+      <p class="description">Administrative minting panel restricted to the contract owner.</p>
+      
+      <form id="mintForm">
+        <div class="form-group">
+          <label for="recipientAddress">Recipient Address</label>
+          <input 
+            type="text" 
+            id="recipientAddress" 
+            placeholder="0x..." 
+            spellcheck="false" 
+            required 
+          />
+        </div>
+        <div class="form-group">
+          <label for="metadataURI">Metadata URI (IPFS / HTTPS Gateway)</label>
+          <input 
+            type="text" 
+            id="metadataURI" 
+            placeholder="ipfs://<CID> or https://gateway.pinata.cloud/ipfs/<CID>" 
+            value="https://gateway.pinata.cloud/ipfs/bafkreietgailfjgtvsv46o7tbj26xik7ldfkcxztrmm5hnktt24si2jgga"
+            spellcheck="false" 
+            required 
+          />
+        </div>
+        <button type="submit" id="mintBtn" class="btn accent" disabled>Mint Token</button>
+      </form>
+      <div id="mintStatus" class="status-msg"></div>
+    </section>
+
+    <!-- Dynamic NFT Gallery -->
+    <section class="gallery-section">
+      <h2>Live Collection Gallery</h2>
+      <div id="galleryGrid" class="gallery-grid">
+        <p class="loading-text">Connecting to BNB Smart Chain...</p>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
