@@ -59,4 +59,42 @@ contract TokenizeArt42OnChain is ERC721, Ownable {
             )
         );
     }
+    event NFTMinted(address indexed recipient, uint256 indexed tokenId);
+
+    function safeMint(address recipient) public onlyOwner returns (uint256) {
+        require(recipient != address(0), "Cannot mint to zero address");
+
+        uint256 tokenId = _nextTokenId;
+        _nextTokenId++;
+
+        _safeMint(recipient, tokenId);
+
+        emit NFTMinted(recipient, tokenId);
+        return tokenId;
+    }
+
+    function totalSupply() external view returns (uint256) {
+        return _nextTokenId;
+    }
+
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        // Reverts with ERC721NonexistentToken if tokenId has not been minted yet
+        _requireOwned(tokenId);
+
+        string memory idStr = tokenId.toString();
+        string memory imageUri = _generateSVG(tokenId);
+        bytes  memory json = abi.encodePacked(
+            '{"name":"42 - On-Chain Emblem #', idStr, '",',
+            '"description":"Fully on-chain generative SVG NFT for 42 School and BNB Chain.",',
+            '"artist":"zrebhi",',
+            '"image":"', imageUri, '"}'
+        );
+
+        return string(
+            abi.encodePacked(
+                "data:application/json;base64,",
+                Base64.encode(json)
+            )
+        );
+    }
 }
