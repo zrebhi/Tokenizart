@@ -120,11 +120,32 @@ All mint operations are guarded by `onlyOwner`. Unauthorized accounts calling `s
 ### 5.2 Prevention of Stranded Assets (`_safeMint` vs. `_mint`)
 Calling standard `_mint` directly transfers ownership without verifying whether the recipient address is capable of handling ERC-721 tokens. If the recipient is a contract without receive logic, the token is permanently trapped. 
 
-`_safeMint` verifies if the target address is a contract by inspecting bytecode size. If code exists, it triggers `IERC721Receiver.onERC721Received` on the recipient and verifies the return value: If the recipient fails to implement the interface, the transaction reverts and the NFT is never minted, safeguarding token assets against loss.
+`_safeMint` verifies if the target address is a contract by inspecting bytecode size. If code exists, it triggers `IERC721Receiver.onERC721Received` on the recipient and verifies its return value. If the recipient fails to implement the interface, the transaction reverts and the NFT is never minted, safeguarding token assets against loss.
 
 ---
 
-## 6. Verification and Evaluation Demonstration
+## 6. Prerequisites & How to Use the NFT
+
+### 6.1 Viewing & Verifying (Read-Only, No Wallet Required)
+* **Block Explorer:** Inspect contract state (`name`, `symbol`, `totalSupply`, `ownerOf`, `tokenURI`) directly under **Contract > Read Contract** on [BscScan Testnet](https://testnet.bscscan.com/address/0x954f059376A80327408cBfd6CC7CDC296c4994C4#readContract).
+* **IPFS Gateways:** Resolve any returned CID via `https://gateway.pinata.cloud/ipfs/<CID>` or `https://ipfs.io/ipfs/<CID>`.
+* **Local Web3 Gallery:** Serve `bonus/frontend/` locally (`python3 -m http.server 8080`) to load all minted tokens automatically via public BSC Testnet RPC.
+
+### 6.2 Interacting, Transferring & Minting (Write Operations)
+1. **Install a Web3 Wallet:** Install [MetaMask](https://metamask.io/) (browser extension or mobile).
+2. **Add BNB Smart Chain Testnet:**
+   * **Network Name:** BNB Smart Chain Testnet
+   * **RPC URL:** `https://data-seed-prebsc-1-s1.bnbchain.org:8545/`
+   * **Chain ID:** `97`
+   * **Currency Symbol:** `tBNB`
+   * **Block Explorer:** `https://testnet.bscscan.com`
+3. **Fund with Testnet Gas:** Obtain free `tBNB` from the official BNB Chain Testnet Faucet (no real funds are ever required).
+4. **Display in MetaMask:** Open the **NFTs** tab, click **Import NFT**, enter contract address `0x954f059376A80327408cBfd6CC7CDC296c4994C4`, and specify Token ID `1` or `2` (HTTPS gateway URIs render natively).
+5. **Mint a New Token (Contract Owner Only):** Pin the artwork and ERC-721 metadata JSON to IPFS (e.g., via Pinata), then invoke `safeMint(recipient, metadataURI)` from the deployer wallet using Remix IDE, BscScan **Write Contract**, or the `bonus/frontend/` minting panel.
+
+---
+
+## 7. Verification and Evaluation Demonstration
 
 ### Test Matrix
 
@@ -132,16 +153,29 @@ Calling standard `_mint` directly transfers ownership without verifying whether 
 | :--- | :--- | :--- |
 | **Contract Name** | Call `name()` on BscScan | `"TokenizeArt42"` |
 | **Contract Symbol** | Call `symbol()` on BscScan | `"TA42"` |
-| **Total Supply** | Call `totalSupply()` on BscScan | `>= 2` |
+| **Total Supply** | Call `totalSupply()` on BscScan | `>= 3` |
 | **Token 0 Owner** | Call `ownerOf(0)` on BscScan | Deployer / Owner address |
 | **Token 0 URI** | Call `tokenURI(0)` on BscScan | `ipfs://<CID>` (Decentralized purity) |
 | **Token 1 Owner** | Call `ownerOf(1)` on BscScan | Deployer / Owner address |
 | **Token 1 URI** | Call `tokenURI(1)` on BscScan | `https://gateway.pinata.cloud/ipfs/<CID>` |
-| **MetaMask Rendering** | View Token 1 in MetaMask | Artwork renders natively in UI |
+| **MetaMask Rendering** | View Token 1 or 2 in MetaMask | Artwork renders natively in UI |
 
 ### Demonstration Steps During Peer Defense
 1. **On-Chain Code & State:** Open BscScan Testnet at `0x954f059376A80327408cBfd6CC7CDC296c4994C4` to demonstrate that the contract is verified and functions (`ownerOf`, `totalSupply`) respond correctly.
-2. **Metadata Inspection:** Open the metadata URI in the browser to confirm the JSON contains `artist: "zrebhi"` and `name: "42 - Cybernetic Eagle"`.
-3. **Artwork Display:** 
-   - Demonstrate Token ID 1 displaying directly in the MetaMask extension wallet.
-   - Demonstrate the artwork resolving directly from IPFS gateways (`ipfs.io` or `pinata.cloud`).
+2. **Metadata Inspection:** Open the metadata URI in the browser to confirm the JSON contains `artist: "zrebhi"` and a `name` including `42` and a title.
+3. **Artwork Display:**
+   - Demonstrate Token ID `1` (or `2`) displaying directly in the MetaMask extension wallet.
+   - Demonstrate the artwork resolving directly from IPFS gateways (`ipfs.io` or `gateway.pinata.cloud`) and via the live gallery in `bonus/frontend/`.
+
+---
+
+## 8. Bonus Extensions
+
+### 8.1 Web3 Frontend dApp (`bonus/frontend/`)
+A zero-build vanilla HTML/CSS/JS interface using **Ethers.js v6** that reads `totalSupply()`, `ownerOf()`, and `tokenURI()` through a public BSC Testnet RPC (gasless `eth_call`), resolves both `ipfs://` and `https://` metadata URIs into an XSS-safe gallery, enforces Chain ID `97` in MetaMask, and exposes owner-gated `safeMint()` execution.
+
+### 8.2 Fully On-Chain Inscriptions (`bonus/onchain/TokenizeArt42OnChain.sol`)
+Deployed at `0xFf1ecE5a8E14c9B23B5967C78181A08f86075894` on BSC Testnet (symbol `TA42OC`), this standalone ERC-721 contract eliminates IPFS entirely:
+* **Storage vs. Memory:** Drops `ERC721URIStorage` so `safeMint(address recipient)` avoids per-token `SSTORE` URI gas costs, computing XML and JSON dynamically in temporary EVM `memory` during free `view` calls.
+* **Nested Base64 Encoding:** `_generateSVG(tokenId)` builds deterministic SVG vector artwork (featuring `42` and `ARTIST: ZREBHI`) and encodes it as `data:image/svg+xml;base64,...` so XML double quotes cannot break the outer JSON syntax. `tokenURI(tokenId)` enforces `_requireOwned(tokenId)` and returns the complete payload as `data:application/json;base64,...`.
+* **Zero External Dependencies:** Browsers and MetaMask decode both JSON metadata and SVG artwork inline without HTTP gateways or IPFS pinning.
