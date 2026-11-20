@@ -52,11 +52,19 @@ $$\text{Smart Contract} \longrightarrow \text{Metadata JSON (IPFS)} \longrightar
 ├── code/
 │   └── TokenizeArt42.sol               # Smart contract source code (Solidity ^0.8.20)
 ├── deployment/
-│   ├── deployment_info.json            # Deployment parameters, network details, and compiler specs
+│   └── deployment_info.json            # Deployment parameters, network details, and compiler specs
 ├── mint/
-│   ├── mint_info.json                  # Transaction records, token IDs, and recipient details
-└── documentation/
-    └── documentation.md                # Comprehensive technical whitepaper and security analysis
+│   └── mint_info.json                  # Transaction records, token IDs, and recipient details
+├── documentation/
+│   └── documentation.md                # Comprehensive technical whitepaper and security analysis
+└── bonus/
+    ├── onchain/
+    │   ├── TokenizeArt42OnChain.sol    # Fully on-chain ERC-721 SVG & metadata contract
+    │   └── deployment_info.json        # BSC Testnet deployment parameters for Bonus 3
+    └── frontend/
+        ├── index.html                  # Single-page dApp interface
+        ├── styles.css                   # Responsive dark-theme styling and NFT card grid
+        └── app.js                      # Ethers.js v6 contract reads, IPFS gallery, and MetaMask minting
 ```
 
 ---
@@ -66,7 +74,8 @@ $$\text{Smart Contract} \longrightarrow \text{Metadata JSON (IPFS)} \longrightar
 | Token ID | Token URI | Resolution Scheme | Primary Role |
 | :---: | :--- | :--- | :--- |
 | **0** | `ipfs://bafkreietgailfjgtvsv46o7tbj26xik7ldfkcxztrmm5hnktt24si2jgga` | Native IPFS Protocol | Academic compliance & decentralized immutability proof |
-| **1** | `https://gateway.pinata.cloud/ipfs/bafkreietgailfjgtvsv46o7tbj26xik7ldfkcxztrmm5hnktt24si2jgga` | HTTPS Gateway Proxy | Native wallet rendering & MetaMask client compatibility |
+| **1** | `https://gateway.pinata.cloud/ipfs/bafkreigw3cavaxa45qe4rk2gwj7vx522r27k4ja6dreq2atx4mhqwg4rfu` | HTTPS Gateway Proxy | Native wallet rendering & MetaMask client compatibility |
+| **2** | `https://gateway.pinata.cloud/ipfs/bafkreihmcux3ltjpuapdzvcz5lv64bmr4b2z7tnttfikdbt5evdrtqgjbm` | HTTPS Gateway Proxy | Native wallet rendering & MetaMask client compatibility |
 
 ---
 
@@ -81,7 +90,50 @@ The contract is verified and publicly accessible on the **BNB Smart Chain Testne
 Under the **Contract > Read Contract** tab:
 1. `name()` $\rightarrow$ Returns `"TokenizeArt42"`
 2. `symbol()` $\rightarrow$ Returns `"TA42"`
-3. `totalSupply()` $\rightarrow$ Returns `2`
+3. `totalSupply()` $\rightarrow$ Returns `3`
 4. `ownerOf(0)` $\rightarrow$ Returns the owner address
 5. `tokenURI(0)` $\rightarrow$ Returns the IPFS metadata URI
 6. `tokenURI(1)` $\rightarrow$ Returns the gateway metadata URI
+
+---
+
+## Bonus: Web3 Frontend dApp (`bonus/frontend`)
+
+A zero-build, vanilla JavaScript web interface powered by **Ethers.js v6** that interacts directly with [`0x954f059376A80327408cBfd6CC7CDC296c4994C4`](https://testnet.bscscan.com/address/0x954f059376A80327408cBfd6CC7CDC296c4994C4) on BNB Smart Chain Testnet.
+
+### Features
+* **Public RPC Gallery:** Reads `totalSupply()`, `ownerOf()`, and `tokenURI()` directly from the BSC Testnet RPC on page load, displaying the full NFT collection without requiring a connected wallet.
+* **Concurrent IPFS Resolution & XSS Safety:** Normalizes `ipfs://` URIs via the Pinata gateway, fetches metadata in parallel, renders cards strictly through DOM `.textContent` APIs, and falls back to an inline SVG placeholder if an image fails to load.
+* **MetaMask Wallet & Owner Minting:** Connects via `window.ethereum`, enforces Chain ID `97` (`wallet_switchEthereumChain` / `wallet_addEthereumChain`), restricts `safeMint` to the contract `owner()`, and displays a direct BscScan transaction link upon confirmation.
+
+### Running Locally
+Serve `bonus/frontend/` using any static HTTP server (or open `index.html` directly in a browser with MetaMask installed):
+
+```bash
+cd bonus/frontend
+python3 -m http.server 8080
+```
+
+---
+
+## Bonus: On-Chain Metadata & Image Inscriptions (`bonus/onchain`)
+
+A standalone ERC-721 / BEP-721 contract (`TokenizeArt42OnChain`, symbol `TA42OC`) deployed on **BNB Smart Chain Testnet (Chain ID 97)** that stores both its JSON metadata and vector artwork 100% on-chain with zero IPFS or external HTTP dependencies.
+
+* **Contract Address:** [`0xFf1ecE5a8E14c9B23B5967C78181A08f86075894`](https://testnet.bscscan.com/address/0xFf1ecE5a8E14c9B23B5967C78181A08f86075894)
+* **Architecture:** Drops `ERC721URIStorage` to avoid per-mint `SSTORE` gas overhead. Instead, `tokenURI(tokenId)` verifies token existence via `_requireOwned(tokenId)`, generates deterministic SVG markup in temporary `memory` (cycling accent colors by `tokenId`), encodes it into `data:image/svg+xml;base64,...` to safely escape XML double quotes, and wraps the full ERC-721 JSON payload inside `data:application/json;base64,...`.
+
+### Architecture Comparison: IPFS vs. On-Chain Inscriptions
+
+| Dimension | Mandatory (`TokenizeArt42.sol`) | Bonus (`TokenizeArt42OnChain.sol`) |
+| :--- | :--- | :--- |
+| **Storage Layer** | Off-chain IPFS (content-addressed CIDs) | 100% On-chain (BSC bytecode + dynamic `memory`) |
+| **Artwork Format** | High-resolution raster PNG | Lightweight procedural SVG (`image/svg+xml`) |
+| **Mint Gas Profile** | Higher (`SSTORE` writes URI string per token) | Lower (only updates owner & `_nextTokenId`) |
+| **External Dependencies** | Requires IPFS pinning & HTTP gateways | None — decodes natively in browsers & MetaMask |
+| **Best Use Case** | Large media files (PNG, audio, video) | Permanent, self-contained generative badges/art |
+
+### Verification on BscScan
+1. Open [TokenizeArt42OnChain on BscScan Testnet](https://testnet.bscscan.com/address/0xFf1ecE5a8E14c9B23B5967C78181A08f86075894#readContract).
+2. Call `tokenURI(0)` to retrieve the `data:application/json;base64,...` string.
+3. Paste the returned Data URI directly into a browser address bar to inspect the decoded JSON (`name`, `artist: "zrebhi"`, and nested SVG `image`), or import the token in MetaMask to view the rendered SVG natively.
