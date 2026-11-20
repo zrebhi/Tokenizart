@@ -249,7 +249,14 @@ async function handleAccountsChanged(accounts) {
     recipientInput.value = userAddress;
   }
 
-  await checkNetwork();
+  const isCorrectNetwork = await checkNetwork();
+  if (!isCorrectNetwork) {
+    mintBtn.disabled = true;
+    mintStatus.textContent = "Please switch to BNB Smart Chain Testnet to mint.";
+    mintStatus.className = "status-msg error";
+    return;
+  }
+
   await verifyContractOwner();
 }
 
@@ -274,14 +281,13 @@ async function verifyContractOwner() {
 }
 
 async function checkNetwork() {
-  if (!provider) return;
+  if (!provider) return false;
   const network = await provider.getNetwork();
   
-  if (Number(network.chainId) !== BSC_TESTNET_CHAIN_ID) {
-    networkWarning.style.display = "flex";
-  } else {
-    networkWarning.style.display = "none";
-  }
+  const isCorrectNetwork = Number(network.chainId) === BSC_TESTNET_CHAIN_ID;
+
+  networkWarning.style.display = isCorrectNetwork ? "none" : "flex";
+  return isCorrectNetwork;
 }
 
 async function switchNetwork() {
