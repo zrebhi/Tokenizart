@@ -19,8 +19,18 @@
       "transactionHash": "0x0f258b9da5259967847d89689ad6bb99592e417030fda2baad1c86db80cb5cb6",
       "txExplorerUrl": "https://testnet.bscscan.com/tx/0x0f258b9da5259967847d89689ad6bb99592e417030fda2baad1c86db80cb5cb6",
       "recipient": "0xe2175ADBAd5227281dc17016112646874B8146b3",
-      "metadataURI": "https://gateway.pinata.cloud/ipfs/bafkreietgailfjgtvsv46o7tbj26xik7ldfkcxztrmm5hnktt24si2jgga",
+      "metadataURI": "https://gateway.pinata.cloud/ipfs/bafkreigw3cavaxa45qe4rk2gwj7vx522r27k4ja6dreq2atx4mhqwg4rfu",
       "imageURI": "https://gateway.pinata.cloud/ipfs/bafybeihw3rdtli4if55g33ydkzm57vvcvtuomvunbrwnnmkdtcneatswr4",
+      "scheme": "https://"
+    },
+    {
+      "tokenId": 2,
+      "purpose": "Additional collection artwork minted via Web3 dApp",
+      "transactionHash": "0x9083845351f814a21b41e16f75b4bb46fcde0532e6bfd78689c0244fb8000158",
+      "txExplorerUrl": "https://testnet.bscscan.com/tx/0x9083845351f814a21b41e16f75b4bb46fcde0532e6bfd78689c0244fb8000158",
+      "recipient": "0xe2175ADBAd5227281dc17016112646874B8146b3",
+      "metadataURI": "https://gateway.pinata.cloud/ipfs/bafkreihmcux3ltjpuapdzvcz5lv64bmr4b2z7tnttfikdbt5evdrtqgjbm",
+      "imageURI": "https://gateway.pinata.cloud/ipfs/bafybeidfjxj4kio2365ahbaa6tfpq3oa3xquy67te2morirtvmf4payyy4",
       "scheme": "https://"
     }
   ]
